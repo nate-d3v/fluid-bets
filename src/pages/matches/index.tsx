@@ -1,7 +1,7 @@
 import { Flex } from '@chakra-ui/react';
 import MatchesList from '../../components/MatchesList';
 
-const apiKey = process.env.NEXT_PUBLIC_FOOTBALL_DATA_API_KEY;
+const apiKeyFootball = process.env.NEXT_PUBLIC_FOOTBALL_DATA_API_KEY;
 
 const fromDate = new Date().toISOString();
 const toDate = new Date(
@@ -18,7 +18,7 @@ export async function getServerSideProps() {
 			{
 				method: 'GET',
 				headers: {
-					'X-Auth-Token': apiKey as string,
+					'X-Auth-Token': apiKeyFootball as string,
 				},
 			}
 		);

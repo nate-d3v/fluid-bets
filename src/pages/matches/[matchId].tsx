@@ -2,7 +2,7 @@ import { Text, Button } from '@chakra-ui/react';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
-const apiKey = process.env.NEXT_PUBLIC_FOOTBALL_DATA_API_KEY;
+const apiKeyFootball = process.env.NEXT_PUBLIC_FOOTBALL_DATA_API_KEY;
 
 export async function getServerSideProps({ query }: any) {
 	try {
@@ -10,7 +10,7 @@ export async function getServerSideProps({ query }: any) {
 			fetch(`https://api.football-data.org/v4/matches/${query.matchId}`, {
 				method: 'GET',
 				headers: {
-					'X-Auth-Token': apiKey as string,
+					'X-Auth-Token': apiKeyFootball as string,
 				},
 			}),
 			prisma.matchPool.findMany({
@@ -35,7 +35,18 @@ export async function postData(data: any) {
 			'Content-Type': 'application/json',
 		},
 	});
-	return await request.json();
+	return request;
+}
+
+export async function sendNotification(data: any) {
+	const request = await fetch('/api/push', {
+		method: 'POST',
+		body: JSON.stringify(data),
+		headers: {
+			'Content-Type': 'application/json',
+		},
+	});
+	return request;
 }
 
 export default function Match({ apiData, dbData }: any) {
@@ -44,6 +55,13 @@ export default function Match({ apiData, dbData }: any) {
 			<Text>{apiData.id}</Text>
 			<Button onClick={() => postData({ matchId: apiData.id })}>
 				Create pool
+			</Button>
+			<Button
+				onClick={() =>
+					sendNotification({ title: 'Hey', body: 'This is a test' })
+				}
+			>
+				Send notification
 			</Button>
 			{dbData.map((pool: any) => (
 				<Text key={pool.id}>{pool.id}</Text>
