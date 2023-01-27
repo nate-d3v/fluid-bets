@@ -10,7 +10,7 @@ export async function getServerSideProps({ query }: any) {
 			fetch(`https://api.football-data.org/v4/matches/${query.matchId}`, {
 				method: 'GET',
 				headers: {
-					'X-Auth-Token': apiKeyFootball as string,
+					'X-Auth-Token': apiKeyFootball!,
 				},
 			}),
 			prisma.matchPool.findMany({

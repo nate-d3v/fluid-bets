@@ -6,7 +6,7 @@ import * as ethers from 'ethers';
 //const prisma = new PrismaClient();
 
 const PKey = process.env.PRIVATE_KEY;
-const signer = new ethers.Wallet(PKey as string);
+const signer = new ethers.Wallet(PKey!);
 
 export default async function handler(
 	req: NextApiRequest,

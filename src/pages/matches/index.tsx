@@ -18,7 +18,7 @@ export async function getServerSideProps() {
 			{
 				method: 'GET',
 				headers: {
-					'X-Auth-Token': apiKeyFootball as string,
+					'X-Auth-Token': apiKeyFootball!,
 				},
 			}
 		);

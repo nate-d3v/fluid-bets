@@ -11,7 +11,7 @@ const apiKeyAlchemy = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
 
 const { chains, provider } = configureChains(
 	[goerli],
-	[alchemyProvider({ apiKey: apiKeyAlchemy as string }), publicProvider()]
+	[alchemyProvider({ apiKey: apiKeyAlchemy! }), publicProvider()]
 );
 
 const { connectors } = getDefaultWallets({
