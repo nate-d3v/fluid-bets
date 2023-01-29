@@ -10,6 +10,7 @@ import {
 import { PrismaClient } from '@prisma/client';
 import { useProvider, useSigner } from 'wagmi';
 import { useState } from 'react';
+import { Framework } from '@superfluid-finance/sdk-core';
 
 const prisma = new PrismaClient();
 const apiKeyFootball = process.env.NEXT_PUBLIC_FOOTBALL_DATA_API_KEY;
@@ -23,7 +24,7 @@ export async function getServerSideProps({ query }: any) {
 					'X-Auth-Token': apiKeyFootball!,
 				},
 			}),
-			prisma.matchPool.findMany({
+			prisma.matchPool.findFirst({
 				where: {
 					matchId: Number(query.matchId),
 				},
@@ -37,9 +38,9 @@ export async function getServerSideProps({ query }: any) {
 	}
 }
 
-export async function postData(data: any) {
+export async function dbRequest(data: any, method: any) {
 	const request = await fetch('/api/db', {
-		method: 'POST',
+		method: method,
 		body: JSON.stringify(data),
 		headers: {
 			'Content-Type': 'application/json',
@@ -65,19 +66,33 @@ export default function Match({ apiData, dbData }: any) {
 	const [amount, setAmount] = useState('10');
 	const [isError, setIsError] = useState(false);
 
-	const sendTokens = () => {
+	const sendTokens = async () => {
 		if (Number.isNaN(amount) || Number(amount) > 100 || Number(amount) < 10) {
 			setIsError(true);
 		} else {
 			setIsError(false);
-			console.log(amount);
+			const adjustedAmount = Number(amount) * 1e18;
+			const sf = await Framework.create({
+				chainId: 5,
+				provider,
+			});
+			const signerSf = sf.createSigner({ signer: signer! });
+			const daix = await sf.loadSuperToken(
+				'0xF2d68898557cCb2Cf4C10c3Ef2B034b2a69DAD00'
+			);
+			const transferOperation = daix.transfer({
+				receiver: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+				amount: adjustedAmount.toString(),
+			});
+			const txnResponse = await transferOperation.exec(signerSf);
+			const txnReceipt = await txnResponse.wait();
 		}
 	};
 
 	return (
 		<>
 			<Text>{apiData.id}</Text>
-			<Button onClick={() => postData({ matchId: apiData.id })}>
+			<Button onClick={() => dbRequest({ matchId: apiData.id }, 'POST')}>
 				Create pool
 			</Button>
 			<Button
@@ -104,14 +119,16 @@ export default function Match({ apiData, dbData }: any) {
 				<Button
 					onClick={() => {
 						sendTokens();
+						dbRequest(
+							{ data: { id: dbData.id, userAmount: Number(amount) } },
+							'PUT'
+						);
 					}}
 				>
 					Send
 				</Button>
 			</FormControl>
-			{dbData.map((pool: any) => (
-				<Text key={pool.id}>{pool.id}</Text>
-			))}
+			<Text>{dbData.id}</Text>
 		</>
 	);
 }

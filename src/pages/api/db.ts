@@ -19,9 +19,23 @@ export default async function handler(
 			const matchPool = await prisma.matchPool.create({
 				data: {
 					matchId: matchId,
+					totalAmount: 0,
 				},
 			});
 		}
+		res.status(200).json({ status: 'OK' });
+	} else if (req.method === 'PUT') {
+		const { data } = req.body;
+		const updateRecord = await prisma.matchPool.update({
+			where: {
+				id: data.id,
+			},
+			data: {
+				totalAmount: {
+					increment: data.userAmount,
+				},
+			},
+		});
 		res.status(200).json({ status: 'OK' });
 	} else {
 		res.status(400).send('Method not allowed');
