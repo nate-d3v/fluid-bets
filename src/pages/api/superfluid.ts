@@ -29,8 +29,8 @@ export default async function handler(
 				const createIndexOperation = daix.createIndex({
 					indexId: id,
 				});
-
-				await createIndexOperation.exec(signer);
+				const createIndexResponse = await createIndexOperation.exec(signer);
+				const createIndexReceipt = await createIndexResponse.wait();
 
 				res.status(200).json({ index: id });
 				break;
@@ -40,8 +40,10 @@ export default async function handler(
 					subscriber: data.address,
 					units: data.userAmount,
 				});
-
-				await updateSubscriptionOperation.exec(signer);
+				const updateSubscriptionResponse =
+					await updateSubscriptionOperation.exec(signer);
+				const updateSubscriptionReceipt =
+					await updateSubscriptionResponse.wait();
 
 				res.status(200).json({ index: data.id, units: data.amount });
 				break;
@@ -51,7 +53,11 @@ export default async function handler(
 					amount: data.totalAmount,
 				});
 
-				await distributeOperation.exec(signer);
+				const distributeOperationResponse = await distributeOperation.exec(
+					signer
+				);
+				const distributeOperationReceipt =
+					await distributeOperationResponse.wait();
 
 				res.status(200).json({ status: 'OK' });
 				break;

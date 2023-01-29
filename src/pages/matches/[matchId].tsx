@@ -1,5 +1,15 @@
-import { Text, Button } from '@chakra-ui/react';
+import {
+	Text,
+	Button,
+	FormControl,
+	FormLabel,
+	FormErrorMessage,
+	NumberInput,
+	NumberInputField,
+} from '@chakra-ui/react';
 import { PrismaClient } from '@prisma/client';
+import { useProvider, useSigner } from 'wagmi';
+import { useState } from 'react';
 
 const prisma = new PrismaClient();
 const apiKeyFootball = process.env.NEXT_PUBLIC_FOOTBALL_DATA_API_KEY;
@@ -50,6 +60,20 @@ export async function sendNotification(data: any) {
 }
 
 export default function Match({ apiData, dbData }: any) {
+	const provider = useProvider();
+	const { data: signer } = useSigner();
+	const [amount, setAmount] = useState('10');
+	const [isError, setIsError] = useState(false);
+
+	const sendTokens = () => {
+		if (Number.isNaN(amount) || Number(amount) > 100 || Number(amount) < 10) {
+			setIsError(true);
+		} else {
+			setIsError(false);
+			console.log(amount);
+		}
+	};
+
 	return (
 		<>
 			<Text>{apiData.id}</Text>
@@ -63,6 +87,28 @@ export default function Match({ apiData, dbData }: any) {
 			>
 				Send notification
 			</Button>
+			<FormControl isInvalid={isError}>
+				<FormLabel>Amount</FormLabel>
+				<NumberInput
+					defaultValue={10}
+					max={100}
+					min={10}
+					clampValueOnBlur={false}
+				>
+					<NumberInputField
+						value={amount}
+						onChange={e => setAmount(e.target.value)}
+					/>
+				</NumberInput>
+				<FormErrorMessage>Min: 10 & Max: 100</FormErrorMessage>
+				<Button
+					onClick={() => {
+						sendTokens();
+					}}
+				>
+					Send
+				</Button>
+			</FormControl>
 			{dbData.map((pool: any) => (
 				<Text key={pool.id}>{pool.id}</Text>
 			))}
