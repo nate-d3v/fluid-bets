@@ -26,11 +26,11 @@ export default async function handler(
 		switch (action) {
 			case 'createIndex':
 				const id = Math.floor(Math.random() * 1000000000).toString();
-				const createIndexOperation = daix.createIndex({
+				/* const createIndexOperation = daix.createIndex({
 					indexId: id,
 				});
 				const createIndexResponse = await createIndexOperation.exec(signer);
-				const createIndexReceipt = await createIndexResponse.wait();
+				const createIndexReceipt = await createIndexResponse.wait(); */
 
 				res.status(200).json({ index: id });
 				break;
@@ -59,7 +59,7 @@ export default async function handler(
 				const distributeOperationReceipt =
 					await distributeOperationResponse.wait();
 
-				res.status(200).json({ status: 'OK' });
+				res.status(200).json({});
 				break;
 			default:
 				res.status(500).send('Wrong action');

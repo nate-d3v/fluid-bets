@@ -13,7 +13,8 @@ datasource db {
 model MatchPool {
   id String @id @default(auto()) @map("_id") @db.ObjectId
   matchId Int
-  totalAmount Int?
-  homeTeam Json?
-  awayTeam Json?
+  indexId String
+  totalAmount Int
+  homeTeam Json
+  awayTeam Json
 }

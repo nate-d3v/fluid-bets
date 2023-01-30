@@ -31,7 +31,7 @@ export default async function handler(
 			channel: 'eip155:5:0x85317a021541263540bFe56A665239Db71e17026',
 			env: 'staging',
 		});
-		res.status(200).json({ status: 'OK' });
+		res.status(200).json({});
 	} else {
 		res.status(400).send('Method not allowed');
 	}
