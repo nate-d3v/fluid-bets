@@ -26,30 +26,32 @@ export default async function handler(
 		switch (action) {
 			case 'createIndex':
 				const id = Math.floor(Math.random() * 1000000000).toString();
-				/* const createIndexOperation = daix.createIndex({
+				const createIndexOperation = daix.createIndex({
 					indexId: id,
 				});
 				const createIndexResponse = await createIndexOperation.exec(signer);
-				const createIndexReceipt = await createIndexResponse.wait(); */
+				const createIndexReceipt = await createIndexResponse.wait();
 
 				res.status(200).json({ index: id });
 				break;
 			case 'updateSubscription':
-				const updateSubscriptionOperation = daix.updateSubscriptionUnits({
-					indexId: data.id,
-					subscriber: data.address,
-					units: data.userAmount,
-				});
-				const updateSubscriptionResponse =
-					await updateSubscriptionOperation.exec(signer);
-				const updateSubscriptionReceipt =
-					await updateSubscriptionResponse.wait();
+				for (const item of data.array) {
+					const updateSubscriptionOperation = daix.updateSubscriptionUnits({
+						indexId: data.indexId,
+						subscriber: item[0],
+						units: item[1],
+					});
+					const updateSubscriptionResponse =
+						await updateSubscriptionOperation.exec(signer);
+					/* const updateSubscriptionReceipt =
+						await updateSubscriptionResponse.wait(); */
+				}
 
-				res.status(200).json({ index: data.id, units: data.amount });
+				res.status(200).json({});
 				break;
 			case 'distributeFunds':
 				const distributeOperation = daix.distribute({
-					indexId: data.id,
+					indexId: data.indexId,
 					amount: data.totalAmount,
 				});
 

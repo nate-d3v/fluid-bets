@@ -49,6 +49,9 @@ export default async function handler(
 						id: data.id,
 					},
 					data: {
+						totalAmount: {
+							increment: data.userAmount,
+						},
 						homeTeam: homeTeam,
 					},
 				});
@@ -59,6 +62,9 @@ export default async function handler(
 						id: data.id,
 					},
 					data: {
+						totalAmount: {
+							increment: data.userAmount,
+						},
 						awayTeam: awayTeam,
 					},
 				});

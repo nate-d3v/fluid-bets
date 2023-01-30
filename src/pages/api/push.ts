@@ -3,8 +3,6 @@ import { PrismaClient } from '@prisma/client';
 import * as PushAPI from '@pushprotocol/restapi';
 import * as ethers from 'ethers';
 
-//const prisma = new PrismaClient();
-
 const PKey = process.env.PRIVATE_KEY;
 const signer = new ethers.Wallet(PKey!);
 

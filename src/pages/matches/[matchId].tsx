@@ -10,7 +10,7 @@ import {
 	Radio,
 	HStack,
 } from '@chakra-ui/react';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { useProvider, useSigner, useAccount } from 'wagmi';
 import { useEffect, useState } from 'react';
 import { Framework } from '@superfluid-finance/sdk-core';
@@ -80,7 +80,12 @@ export default function Match({ apiData, dbData }: any) {
 	useEffect(() => {
 		if (address) {
 			setProfileAddress(address);
+		} else {
+			setProfileAddress(undefined);
 		}
+	}, [address]);
+
+	useEffect(() => {
 		if (apiData.status === 'TIMED') {
 			setMatchStatus('TIMED');
 		} else if (apiData.status === 'FINISHED') {
@@ -88,7 +93,7 @@ export default function Match({ apiData, dbData }: any) {
 		} else {
 			setMatchStatus('OTHER');
 		}
-	}, []);
+	}, [matchStatus]);
 
 	useEffect(() => {
 		if (dbData) {
@@ -135,6 +140,20 @@ export default function Match({ apiData, dbData }: any) {
 			},
 		});
 		return request.json();
+	};
+
+	const buildDistributionArray = () => {
+		let arr: any[] = [];
+		arr = dbData.homeTeam as Prisma.JsonArray;
+		if (apiData.score === 'HOME_TEAM') {
+		} else if (apiData.score === 'AWAY_TEAM') {
+			arr = dbData.awayTeam as Prisma.JsonArray;
+		} else if (apiData.score === 'DRAW') {
+			const homeTeam = dbData.homeTeam as Prisma.JsonArray;
+			const awayTeam = dbData.awayTeam as Prisma.JsonArray;
+			arr = homeTeam.concat(awayTeam);
+		}
+		return arr;
 	};
 
 	return (
@@ -208,6 +227,21 @@ export default function Match({ apiData, dbData }: any) {
 					<Radio value="awayTeam">{apiData.awayTeam.shortName}</Radio>
 				</HStack>
 			</RadioGroup>
+			<Button
+				onClick={async () => {
+					const array = buildDistributionArray();
+					const subscriptions = await superfluidRequest('updateSubscription', {
+						indexId: dbData.indexId,
+						array: array,
+					});
+					const distribution = await superfluidRequest('distributeFunds', {
+						indexId: dbData.indexId,
+						totalAmount: dbData.totalAmount,
+					});
+				}}
+			>
+				Claim funds
+			</Button>
 		</>
 	);
 }
