@@ -56,10 +56,10 @@ export default function Profile() {
 		};
 
 		getNotifications();
-		const interval = setInterval(() => {
+		/* const interval = setInterval(() => {
 			getNotifications();
 		}, 10000);
-		return () => clearInterval(interval);
+		return () => clearInterval(interval); */
 	}, [notificationsArray]);
 
 	const subscribeToChannel = async () => {

@@ -72,12 +72,31 @@ export default function Match({ apiData, dbData }: any) {
 	const [profileAddress, setProfileAddress] =
 		useState<typeof address>(undefined);
 	const [selectedTeam, setSelectedTeam] = useState('homeTeam');
+	const [poolCreated, setPoolCreated] = useState(false);
+	const [matchStatus, setMatchStatus] = useState<
+		'TIMED' | 'FINISHED' | 'OTHER'
+	>('TIMED');
 
 	useEffect(() => {
 		if (address) {
 			setProfileAddress(address);
 		}
+		if (apiData.status === 'TIMED') {
+			setMatchStatus('TIMED');
+		} else if (apiData.status === 'FINISHED') {
+			setMatchStatus('FINISHED');
+		} else {
+			setMatchStatus('OTHER');
+		}
 	}, []);
+
+	useEffect(() => {
+		if (dbData) {
+			if (dbData.id) {
+				setPoolCreated(true);
+			}
+		}
+	}, [poolCreated]);
 
 	const sendTokens = async () => {
 		if (Number.isNaN(amount) || Number(amount) > 100 || Number(amount) < 10) {
@@ -120,16 +139,22 @@ export default function Match({ apiData, dbData }: any) {
 
 	return (
 		<>
-			<Text>{apiData.id}</Text>
 			<Button
 				onClick={async () => {
-					const res = await superfluidRequest('createIndex');
-					dbRequest({ matchId: apiData.id, indexId: res.index }, 'POST');
+					const resSF = await superfluidRequest('createIndex');
+					const resDB = await dbRequest(
+						{ matchId: apiData.id, indexId: resSF.index },
+						'POST'
+					);
 					sendNotification({
 						title: `${apiData.homeTeam.tla} - ${apiData.awayTeam.tla}`,
 						body: 'A new betting pool was created',
 					});
+					if (resDB) {
+						setPoolCreated(true);
+					}
 				}}
+				isDisabled={poolCreated || matchStatus !== 'TIMED'}
 			>
 				Create pool
 			</Button>
@@ -146,7 +171,7 @@ export default function Match({ apiData, dbData }: any) {
 						onChange={e => setAmount(e.target.value)}
 					/>
 				</NumberInput>
-				<FormErrorMessage>Min: 10 & Max: 100</FormErrorMessage>
+				<FormErrorMessage>Min: 10 DAIx & Max: 100 DAIx</FormErrorMessage>
 				<Button
 					onClick={async () => {
 						const tx = await sendTokens();
@@ -172,14 +197,15 @@ export default function Match({ apiData, dbData }: any) {
 							});
 						}
 					}}
+					isDisabled={!poolCreated || matchStatus !== 'TIMED'}
 				>
 					Deposit
 				</Button>
 			</FormControl>
 			<RadioGroup onChange={setSelectedTeam} value={selectedTeam}>
 				<HStack>
-					<Radio value="homeTeam">Home Team</Radio>
-					<Radio value="awayTeam">Away Team</Radio>
+					<Radio value="homeTeam">{apiData.homeTeam.shortName}</Radio>
+					<Radio value="awayTeam">{apiData.awayTeam.shortName}</Radio>
 				</HStack>
 			</RadioGroup>
 		</>

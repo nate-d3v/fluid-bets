@@ -1,5 +1,5 @@
 import { Flex } from '@chakra-ui/react';
-import MatchesList from '../../components/MatchesList';
+import MatchList from '../../components/MatchList';
 
 const apiKeyFootball = process.env.NEXT_PUBLIC_FOOTBALL_DATA_API_KEY;
 
@@ -34,7 +34,7 @@ export default function Matches({ data }: any) {
 	return (
 		<>
 			<Flex flexDir="column">
-				<MatchesList data={data} />
+				<MatchList data={data} />
 			</Flex>
 		</>
 	);
