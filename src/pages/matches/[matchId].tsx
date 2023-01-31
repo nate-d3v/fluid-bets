@@ -86,7 +86,8 @@ export default function Match({ apiData, dbData }: any) {
 	const [poolCreated, setPoolCreated] = useState(false);
 	const [matchStatus, setMatchStatus] = useState<
 		'TIMED' | 'FINISHED' | 'OTHER'
-	>('TIMED');
+	>('FINISHED');
+	const [userHasDeposited, setUserHasDeposited] = useState(false);
 
 	useEffect(() => {
 		if (address) {
@@ -96,7 +97,8 @@ export default function Match({ apiData, dbData }: any) {
 		}
 	}, [address]);
 
-	useEffect(() => {
+	//comment this useEffect block to simulate match ending without db query
+	/* useEffect(() => {
 		if (apiData.status === 'TIMED') {
 			setMatchStatus('TIMED');
 		} else if (apiData.status === 'FINISHED') {
@@ -104,7 +106,7 @@ export default function Match({ apiData, dbData }: any) {
 		} else {
 			setMatchStatus('OTHER');
 		}
-	}, [matchStatus]);
+	}, [matchStatus]); */
 
 	useEffect(() => {
 		if (dbData) {
@@ -113,6 +115,15 @@ export default function Match({ apiData, dbData }: any) {
 			}
 		}
 	}, [poolCreated]);
+
+	useEffect(() => {
+		if (dbData) {
+			const homeTeam = dbData.homeTeam as Prisma.JsonArray;
+			const awayTeam = dbData.awayTeam as Prisma.JsonArray;
+			let usersArray = homeTeam.concat(awayTeam).map((arr: any) => arr[0]);
+			setUserHasDeposited(usersArray.includes(address));
+		}
+	}, []);
 
 	const sendTokens = async () => {
 		if (Number.isNaN(amount) || Number(amount) > 100 || Number(amount) < 10) {
@@ -144,6 +155,7 @@ export default function Match({ apiData, dbData }: any) {
 
 	const buildDistributionArray = () => {
 		let arr: any[] = [];
+		//change manually to simulate match ending and create winners array
 		arr = dbData.homeTeam as Prisma.JsonArray;
 		if (apiData.score === 'HOME_TEAM') {
 		} else if (apiData.score === 'AWAY_TEAM') {
@@ -153,8 +165,29 @@ export default function Match({ apiData, dbData }: any) {
 			const awayTeam = dbData.awayTeam as Prisma.JsonArray;
 			arr = homeTeam.concat(awayTeam);
 		}
-		let modArr = arr.map((item: any) => `eip155:5:${item[0]}`);
-		return { arr, modArr };
+		return arr;
+	};
+
+	const claimFunds = async () => {
+		try {
+			const sf = await Framework.create({
+				chainId: 5,
+				provider,
+			});
+			const signerSf = sf.createSigner({ signer: signer! });
+			const daix = await sf.loadSuperToken(
+				'0xF2d68898557cCb2Cf4C10c3Ef2B034b2a69DAD00'
+			);
+			const claimOperation = daix.claim({
+				indexId: dbData.indexId,
+				subscriber: address!,
+				publisher: '0x85317a021541263540bFe56A665239Db71e17026',
+			});
+			const txnResponse = await claimOperation.exec(signerSf);
+			const txnReceipt = await txnResponse.wait();
+		} catch (err) {
+			console.log(err);
+		}
 	};
 
 	return (
@@ -209,6 +242,7 @@ export default function Match({ apiData, dbData }: any) {
 								},
 								'PUT'
 							);
+							setUserHasDeposited(true);
 							sendNotification('broadcast', {
 								data: {
 									title: `${apiData.homeTeam.tla} - ${apiData.awayTeam.tla}`,
@@ -221,10 +255,15 @@ export default function Match({ apiData, dbData }: any) {
 							});
 						}
 					}}
-					isDisabled={!poolCreated || matchStatus !== 'TIMED'}
+					isDisabled={
+						!poolCreated || matchStatus !== 'TIMED' || userHasDeposited
+					}
 				>
 					Deposit
 				</Button>
+				{userHasDeposited && (
+					<Text>You already deposited funds in this pool</Text>
+				)}
 			</FormControl>
 			<RadioGroup onChange={setSelectedTeam} value={selectedTeam}>
 				<HStack>
@@ -234,26 +273,39 @@ export default function Match({ apiData, dbData }: any) {
 			</RadioGroup>
 			<Button
 				onClick={async () => {
-					const { arr, modArr } = buildDistributionArray();
-					const subscriptions = await superfluidRequest('updateSubscription', {
-						indexId: dbData.indexId,
-						array: arr,
-					});
-					const distribution = await superfluidRequest('distributeFunds', {
-						indexId: dbData.indexId,
-						totalAmount: dbData.totalAmount,
-					});
-					sendNotification('subset', {
+					const arr = buildDistributionArray();
+					let modArr = arr.map((item: any) => `eip155:5:${item[0]}`);
+					console.log(arr);
+					/* const subscriptions = await superfluidRequest('updateSubscription', {
+						data: {
+							indexId: dbData.indexId,
+							array: arr,
+						},
+					}); */
+					/* const distribution = await superfluidRequest('distributeFunds', {
+						data: {
+							indexId: dbData.indexId,
+							totalAmount: dbData.totalAmount * 1e18,
+						},
+					}); */
+					/* sendNotification('subset', {
 						data: {
 							title: `${apiData.homeTeam.tla} - ${apiData.awayTeam.tla}`,
 							body: 'The match has ended and funds have been sent to your address',
 							array: modArr,
 						},
-					});
+					}); */
 				}}
 				isDisabled={!poolCreated || matchStatus !== 'FINISHED'}
 			>
-				Claim funds
+				Request Distribution
+			</Button>
+			<Button
+				onClick={() => {
+					claimFunds();
+				}}
+			>
+				Claim Funds
 			</Button>
 		</>
 	);

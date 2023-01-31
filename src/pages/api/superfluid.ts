@@ -43,8 +43,8 @@ export default async function handler(
 					});
 					const updateSubscriptionResponse =
 						await updateSubscriptionOperation.exec(signer);
-					/* const updateSubscriptionReceipt =
-						await updateSubscriptionResponse.wait(); */
+					const updateSubscriptionReceipt =
+						await updateSubscriptionResponse.wait();
 				}
 
 				res.status(200).json({});
@@ -52,7 +52,7 @@ export default async function handler(
 			case 'distributeFunds':
 				const distributeOperation = daix.distribute({
 					indexId: data.indexId,
-					amount: data.totalAmount,
+					amount: data.totalAmount.toString(),
 				});
 
 				const distributeOperationResponse = await distributeOperation.exec(
