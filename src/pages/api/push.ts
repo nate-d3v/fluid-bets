@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { PrismaClient } from '@prisma/client';
 import * as PushAPI from '@pushprotocol/restapi';
 import * as ethers from 'ethers';
 
@@ -11,25 +10,52 @@ export default async function handler(
 	res: NextApiResponse<any>
 ) {
 	if (req.method === 'POST') {
-		const { title, body } = req.body;
-		const apiResponse = await PushAPI.payloads.sendNotification({
-			signer,
-			type: 1,
-			identityType: 2,
-			notification: {
-				title: 'Fluid Bets',
-				body: 'You received a new notification',
-			},
-			payload: {
-				title: title,
-				body: body,
-				cta: '',
-				img: '',
-			},
-			channel: 'eip155:5:0x85317a021541263540bFe56A665239Db71e17026',
-			env: 'staging',
-		});
-		res.status(200).json({});
+		const { action } = req.query;
+		const { data } = req.body;
+
+		switch (action) {
+			case 'broadcast':
+				const broadcastRes = await PushAPI.payloads.sendNotification({
+					signer,
+					type: 1,
+					identityType: 2,
+					notification: {
+						title: 'Fluid Bets',
+						body: 'You received a new notification',
+					},
+					payload: {
+						title: data.title,
+						body: data.body,
+						cta: '',
+						img: '',
+					},
+					channel: 'eip155:5:0x85317a021541263540bFe56A665239Db71e17026',
+					env: 'staging',
+				});
+				res.status(200).json({});
+				break;
+			case 'subset':
+				const subsetResponse = await PushAPI.payloads.sendNotification({
+					signer,
+					type: 4,
+					identityType: 2,
+					notification: {
+						title: 'Fluid Bets',
+						body: 'You received a new notification',
+					},
+					payload: {
+						title: data.title,
+						body: data.body,
+						cta: '',
+						img: '',
+					},
+					recipients: data.array,
+					channel: 'eip155:5:0x85317a021541263540bFe56A665239Db71e17026',
+					env: 'staging',
+				});
+				res.status(200).json({});
+				break;
+		}
 	} else {
 		res.status(400).send('Method not allowed');
 	}

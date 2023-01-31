@@ -1,19 +1,36 @@
 import * as PushAPI from '@pushprotocol/restapi';
-import { useAccount, useSigner } from 'wagmi';
+import { useAccount, useSigner, useBalance } from 'wagmi';
 import { Flex, Text, Button } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 
 export default function Profile() {
 	const { address } = useAccount();
 	const { data: signer } = useSigner();
+	const { data } = useBalance({
+		address: address,
+		chainId: 5,
+		token: '0xF2d68898557cCb2Cf4C10c3Ef2B034b2a69DAD00',
+	});
 	const [isSubscribed, setIsSubscribed] = useState(false);
-	const [profileAddress, setProfileAddress] = useState('');
+	const [profileAddress, setProfileAddress] =
+		useState<typeof address>(undefined);
 	const [notificationsArray, setNotificationsArray] = useState([]);
 	const [subscriptionsArray, setSubscriptionsArray] = useState<string[]>([]);
+	const [balance, setBalance] = useState(0);
 
 	useEffect(() => {
-		setProfileAddress(address!);
-	}, []);
+		if (address) {
+			setProfileAddress(address);
+		} else {
+			setProfileAddress(undefined);
+		}
+	}, [address]);
+
+	useEffect(() => {
+		if (data) {
+			setBalance(Number(data?.formatted));
+		}
+	});
 
 	useEffect(() => {
 		const checkSubscription = async () => {
@@ -91,25 +108,24 @@ export default function Profile() {
 	return (
 		<>
 			<Flex flexDir="column">
-				<Text>
-					{isSubscribed ? (
-						<Button
-							onClick={() => {
-								unsubscribeToChannel();
-							}}
-						>
-							Unsubscribe
-						</Button>
-					) : (
-						<Button
-							onClick={() => {
-								subscribeToChannel();
-							}}
-						>
-							Subscribe
-						</Button>
-					)}
-				</Text>
+				{isSubscribed ? (
+					<Button
+						onClick={() => {
+							unsubscribeToChannel();
+						}}
+					>
+						Unsubscribe
+					</Button>
+				) : (
+					<Button
+						onClick={() => {
+							subscribeToChannel();
+						}}
+					>
+						Subscribe
+					</Button>
+				)}
+				<Text>{balance.toFixed(0)} DAIx</Text>
 				{notificationsArray.length > 0 &&
 					notificationsArray.map((item: any) => (
 						<Flex flexDir="column" key={item.sid}>

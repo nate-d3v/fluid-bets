@@ -52,8 +52,19 @@ export async function dbRequest(data: any, method: any) {
 	return request.json();
 }
 
-export async function sendNotification(data: any) {
-	const request = await fetch('/api/push', {
+export async function sendNotification(action: any, data: any) {
+	const request = await fetch(`/api/push?action=${action}`, {
+		method: 'POST',
+		body: JSON.stringify(data),
+		headers: {
+			'Content-Type': 'application/json',
+		},
+	});
+	return request.json();
+}
+
+export async function superfluidRequest(action: any, data?: any) {
+	const request = await fetch(`/api/superfluid?action=${action}`, {
 		method: 'POST',
 		body: JSON.stringify(data),
 		headers: {
@@ -131,17 +142,6 @@ export default function Match({ apiData, dbData }: any) {
 		}
 	};
 
-	const superfluidRequest = async (action: any, data?: any) => {
-		const request = await fetch(`/api/superfluid?action=${action}`, {
-			method: 'POST',
-			body: JSON.stringify(data),
-			headers: {
-				'Content-Type': 'application/json',
-			},
-		});
-		return request.json();
-	};
-
 	const buildDistributionArray = () => {
 		let arr: any[] = [];
 		arr = dbData.homeTeam as Prisma.JsonArray;
@@ -153,7 +153,8 @@ export default function Match({ apiData, dbData }: any) {
 			const awayTeam = dbData.awayTeam as Prisma.JsonArray;
 			arr = homeTeam.concat(awayTeam);
 		}
-		return arr;
+		let modArr = arr.map((item: any) => `eip155:5:${item[0]}`);
+		return { arr, modArr };
 	};
 
 	return (
@@ -165,9 +166,11 @@ export default function Match({ apiData, dbData }: any) {
 						{ matchId: apiData.id, indexId: resSF.index },
 						'POST'
 					);
-					sendNotification({
-						title: `${apiData.homeTeam.tla} - ${apiData.awayTeam.tla}`,
-						body: 'A new betting pool was created',
+					sendNotification('broadcast', {
+						data: {
+							title: `${apiData.homeTeam.tla} - ${apiData.awayTeam.tla}`,
+							body: 'A new betting pool was created',
+						},
 					});
 					if (resDB) {
 						setPoolCreated(true);
@@ -206,13 +209,15 @@ export default function Match({ apiData, dbData }: any) {
 								},
 								'PUT'
 							);
-							sendNotification({
-								title: `${apiData.homeTeam.tla} - ${apiData.awayTeam.tla}`,
-								body: `A new participant has bet ${amount} DAIx on ${
-									selectedTeam === 'homeTeam'
-										? apiData.homeTeam.shortName
-										: apiData.awayTeam.shortName
-								}`,
+							sendNotification('broadcast', {
+								data: {
+									title: `${apiData.homeTeam.tla} - ${apiData.awayTeam.tla}`,
+									body: `A new participant has bet ${amount} DAIx on ${
+										selectedTeam === 'homeTeam'
+											? apiData.homeTeam.shortName
+											: apiData.awayTeam.shortName
+									}`,
+								},
 							});
 						}
 					}}
@@ -229,16 +234,24 @@ export default function Match({ apiData, dbData }: any) {
 			</RadioGroup>
 			<Button
 				onClick={async () => {
-					const array = buildDistributionArray();
+					const { arr, modArr } = buildDistributionArray();
 					const subscriptions = await superfluidRequest('updateSubscription', {
 						indexId: dbData.indexId,
-						array: array,
+						array: arr,
 					});
 					const distribution = await superfluidRequest('distributeFunds', {
 						indexId: dbData.indexId,
 						totalAmount: dbData.totalAmount,
 					});
+					sendNotification('subset', {
+						data: {
+							title: `${apiData.homeTeam.tla} - ${apiData.awayTeam.tla}`,
+							body: 'The match has ended and funds have been sent to your address',
+							array: modArr,
+						},
+					});
 				}}
+				isDisabled={!poolCreated || matchStatus !== 'FINISHED'}
 			>
 				Claim funds
 			</Button>
