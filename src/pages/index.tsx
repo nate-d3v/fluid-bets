@@ -35,7 +35,7 @@ export default function Home() {
 					justify="center"
 					align="center"
 					rounded="full"
-					bgColor="#36003C"
+					bgGradient="linear(to-r, #963CFF 0%, #FB2988 100%)"
 					p={6}
 					mb={16}
 				>

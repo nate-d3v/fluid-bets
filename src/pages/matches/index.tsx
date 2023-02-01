@@ -39,7 +39,7 @@ export default function Matches({ data }: any) {
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
 				<link rel="icon" href="/favicon.ico" />
 			</Head>
-			<Flex minH={'100vh'} flexDir="column" align="center">
+			<Flex minH={'100vh'} flexDir="column" align="center" bgImg="url(/bg.jpg)">
 				<Navbar />
 				<MatchList data={data} />
 			</Flex>

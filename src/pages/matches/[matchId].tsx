@@ -10,6 +10,7 @@ import {
 	Radio,
 	HStack,
 	Flex,
+	Image,
 } from '@chakra-ui/react';
 import { PrismaClient, Prisma } from '@prisma/client';
 import { useProvider, useSigner, useAccount } from 'wagmi';
@@ -200,125 +201,169 @@ export default function Match({ apiData, dbData }: any) {
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
 				<link rel="icon" href="/favicon.ico" />
 			</Head>
-			<Flex minH={'100vh'} flexDir="column" align="center">
+			<Flex minH={'100vh'} flexDir="column" align="center" bgImg="url(/bg.jpg)">
 				<Navbar />
-				<Button
-					onClick={async () => {
-						const resSF = await superfluidRequest('createIndex');
-						const resDB = await dbRequest(
-							{ matchId: apiData.id, indexId: resSF.index },
-							'POST'
-						);
-						sendNotification('broadcast', {
-							data: {
-								title: `${apiData.homeTeam.tla} - ${apiData.awayTeam.tla}`,
-								body: 'A new betting pool was created',
-							},
-						});
-						if (resDB) {
-							setPoolCreated(true);
-						}
-					}}
-					isDisabled={poolCreated || matchStatus !== 'TIMED'}
+				<Flex
+					flexDir="column"
+					minW="35%"
+					align="center"
+					boxShadow="md"
+					rounded="xl"
+					p={14}
+					bgColor="white"
 				>
-					Create pool
-				</Button>
-				<FormControl isInvalid={isError}>
-					<FormLabel>Amount</FormLabel>
-					<NumberInput
-						defaultValue={10}
-						max={100}
-						min={10}
-						clampValueOnBlur={false}
-					>
-						<NumberInputField
-							value={amount}
-							onChange={e => setAmount(e.target.value)}
-						/>
-					</NumberInput>
-					<FormErrorMessage>Min: 10 DAIx & Max: 100 DAIx</FormErrorMessage>
+					<Flex align="center" mb={6}>
+						<Text mr={2} fontWeight="bold" fontSize="2xl">
+							{apiData.utcDate.slice(0, 10)}
+						</Text>
+						<Text fontWeight="bold" fontSize="2xl">
+							{apiData.utcDate.slice(-9, -1)}
+						</Text>
+					</Flex>
 					<Button
 						onClick={async () => {
-							const tx = await sendTokens();
-							if (tx?.confirmations === 1) {
-								dbRequest(
+							const resSF = await superfluidRequest('createIndex');
+							const resDB = await dbRequest(
+								{ matchId: apiData.id, indexId: resSF.index },
+								'POST'
+							);
+							sendNotification('broadcast', {
+								data: {
+									title: `${apiData.homeTeam.tla} - ${apiData.awayTeam.tla}`,
+									body: 'A new betting pool was created',
+								},
+							});
+							if (resDB) {
+								setPoolCreated(true);
+							}
+						}}
+						isDisabled={poolCreated || matchStatus !== 'TIMED'}
+						alignSelf="flex-start"
+						bgColor="#09EDFE"
+						mb={4}
+						_hover={{ bgColor: '#09EDFE' }}
+					>
+						<Text fontWeight="normal">Create pool</Text>
+					</Button>
+					<FormControl isInvalid={isError} mb={6}>
+						<FormLabel>Amount</FormLabel>
+						<NumberInput
+							defaultValue={10}
+							max={100}
+							min={10}
+							clampValueOnBlur={false}
+							mb={3}
+						>
+							<NumberInputField
+								value={amount}
+								onChange={e => setAmount(e.target.value)}
+							/>
+						</NumberInput>
+						<FormErrorMessage>Min: 10 DAIx & Max: 100 DAIx</FormErrorMessage>
+						<Button
+							onClick={async () => {
+								const tx = await sendTokens();
+								if (tx?.confirmations === 1) {
+									dbRequest(
+										{
+											data: {
+												id: dbData.id,
+												userAmount: Number(amount),
+												userAddress: profileAddress,
+												team: selectedTeam,
+											},
+										},
+										'PUT'
+									);
+									setUserHasDeposited(true);
+									sendNotification('broadcast', {
+										data: {
+											title: `${apiData.homeTeam.tla} - ${apiData.awayTeam.tla}`,
+											body: `A new participant has bet ${amount} DAIx on ${
+												selectedTeam === 'homeTeam'
+													? apiData.homeTeam.shortName
+													: apiData.awayTeam.shortName
+											}`,
+										},
+									});
+								}
+							}}
+							isDisabled={
+								!poolCreated || matchStatus !== 'TIMED' || userHasDeposited
+							}
+							bgColor="#00FF87"
+							_hover={{ bgColor: '#00FF87' }}
+						>
+							<Text fontWeight="normal">Deposit</Text>
+						</Button>
+						{userHasDeposited && (
+							<Text>You already deposited funds in this pool</Text>
+						)}
+					</FormControl>
+					<RadioGroup onChange={setSelectedTeam} value={selectedTeam} mb={6}>
+						<HStack>
+							<Flex minW="100px" justify="center" mr={4}>
+								<Image src={apiData.homeTeam.crest} maxH="100px" />
+							</Flex>
+							<Radio value="homeTeam">{apiData.homeTeam.shortName}</Radio>
+							<Radio value="awayTeam">{apiData.awayTeam.shortName}</Radio>
+							<Flex minW="100px" justify="center" mr={4}>
+								<Image src={apiData.awayTeam.crest} maxH="100px" />
+							</Flex>
+						</HStack>
+					</RadioGroup>
+					<Flex justify="space-evenly" minW="100%">
+						<Button
+							onClick={async () => {
+								const arr = buildDistributionArray();
+								//let modArr = arr.map((item: any) => `eip155:5:${item[0]}`);
+								const subscriptions = await superfluidRequest(
+									'updateSubscription',
 									{
 										data: {
-											id: dbData.id,
-											userAmount: Number(amount),
-											userAddress: profileAddress,
-											team: selectedTeam,
+											indexId: dbData.indexId,
+											array: arr,
 										},
-									},
-									'PUT'
+									}
 								);
-								setUserHasDeposited(true);
+								const distribution = await superfluidRequest(
+									'distributeFunds',
+									{
+										data: {
+											indexId: dbData.indexId,
+											totalAmount: dbData.totalAmount * 1e18,
+										},
+									}
+								);
 								sendNotification('broadcast', {
 									data: {
 										title: `${apiData.homeTeam.tla} - ${apiData.awayTeam.tla}`,
-										body: `A new participant has bet ${amount} DAIx on ${
-											selectedTeam === 'homeTeam'
-												? apiData.homeTeam.shortName
-												: apiData.awayTeam.shortName
-										}`,
+										body: 'The match has ended and funds have been distributed',
 									},
 								});
-							}
-						}}
-						isDisabled={
-							!poolCreated || matchStatus !== 'TIMED' || userHasDeposited
-						}
-					>
-						Deposit
-					</Button>
-					{userHasDeposited && (
-						<Text>You already deposited funds in this pool</Text>
-					)}
-				</FormControl>
-				<RadioGroup onChange={setSelectedTeam} value={selectedTeam}>
-					<HStack>
-						<Radio value="homeTeam">{apiData.homeTeam.shortName}</Radio>
-						<Radio value="awayTeam">{apiData.awayTeam.shortName}</Radio>
-					</HStack>
-				</RadioGroup>
-				<Button
-					onClick={async () => {
-						const arr = buildDistributionArray();
-						//let modArr = arr.map((item: any) => `eip155:5:${item[0]}`);
-						const subscriptions = await superfluidRequest(
-							'updateSubscription',
-							{
-								data: {
-									indexId: dbData.indexId,
-									array: arr,
-								},
-							}
-						);
-						const distribution = await superfluidRequest('distributeFunds', {
-							data: {
-								indexId: dbData.indexId,
-								totalAmount: dbData.totalAmount * 1e18,
-							},
-						});
-						sendNotification('broadcast', {
-							data: {
-								title: `${apiData.homeTeam.tla} - ${apiData.awayTeam.tla}`,
-								body: 'The match has ended and funds have been distributed',
-							},
-						});
-					}}
-					isDisabled={!poolCreated || matchStatus !== 'FINISHED'}
-				>
-					Request Distribution
-				</Button>
-				<Button
-					onClick={() => {
-						claimFunds();
-					}}
-					isDisabled={!poolCreated || matchStatus !== 'FINISHED'}
-				>
-					Claim Funds
-				</Button>
+							}}
+							isDisabled={!poolCreated || matchStatus !== 'FINISHED'}
+							bgColor="#36003C"
+							_hover={{ bgColor: '#36003C' }}
+						>
+							<Text color="white" fontWeight="normal">
+								Request Distribution
+							</Text>
+						</Button>
+						<Button
+							onClick={() => {
+								claimFunds();
+							}}
+							isDisabled={!poolCreated || matchStatus !== 'FINISHED'}
+							bgColor="#36003C"
+							_hover={{ bgColor: '#36003C' }}
+						>
+							<Text color="white" fontWeight="normal">
+								Claim Funds
+							</Text>
+						</Button>
+					</Flex>
+				</Flex>
 			</Flex>
 		</>
 	);

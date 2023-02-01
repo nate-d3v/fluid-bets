@@ -37,7 +37,7 @@ export default function App({ Component, pageProps }: AppProps) {
 				<RainbowKitProvider
 					chains={chains}
 					theme={lightTheme({
-						accentColor: '#FE015B',
+						accentColor: '#E9237A',
 					})}
 				>
 					<ChakraProvider resetCSS theme={customTheme}>

@@ -14,19 +14,26 @@ export default function MatchList({ data }: any) {
 					_hover={{ textDecoration: 'none' }}
 					minW="45%"
 				>
-					<Flex justify="space-between" align="center" p={2} boxShadow="md">
+					<Flex
+						justify="space-between"
+						align="center"
+						p={2}
+						mb={2}
+						boxShadow="md"
+						bgColor="white"
+					>
 						<Flex align="center">
 							<Flex minW="100px" justify="center" mr={4}>
 								<Image src={match.homeTeam.crest} maxH="100px" />
 							</Flex>
 							<Flex flexDir="column">
-								<Text fontSize="lg" fontWeight="bold">
+								<Text fontSize="xl" fontWeight="bold">
 									{match.homeTeam.shortName} vs {match.awayTeam.shortName}
 								</Text>
 								<Flex align="center">
 									<Text mr={2}>{match.utcDate.slice(0, 10)}</Text>
 									<Text mr={2}>{match.utcDate.slice(-9, -1)}</Text>
-									<Text pb={1}>
+									<Text pb="0.2rem">
 										{match.status === 'TIMED' ? (
 											<CalendarIcon />
 										) : match.status === 'FINISHED' ? (

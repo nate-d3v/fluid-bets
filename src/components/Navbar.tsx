@@ -11,14 +11,8 @@ export default function Navbar() {
 				_focus={{ textDecoration: 'none' }}
 				_hover={{ textDecoration: 'none' }}
 			>
-				<Flex
-					bgGradient="linear(to-r, #09EDFE 0%, #9540FB 100%)"
-					p={2}
-					rounded="xl"
-					minW="7rem"
-					justify="center"
-				>
-					<Text fontSize="xl" color="#37003C">
+				<Flex p={2} rounded="xl" minW="7rem" justify="center" bgColor="#E9237A">
+					<Text fontSize="xl" color="white">
 						Matches
 					</Text>
 				</Flex>
@@ -28,7 +22,7 @@ export default function Navbar() {
 				justify="center"
 				align="center"
 				rounded="full"
-				bgColor="#36003C"
+				bgGradient="linear(to-r, #963CFF 0%, #FB2988 100%)"
 				p={4}
 				mx={5}
 			>
@@ -56,14 +50,8 @@ export default function Navbar() {
 				_focus={{ textDecoration: 'none' }}
 				_hover={{ textDecoration: 'none' }}
 			>
-				<Flex
-					bgGradient="linear(to-r, #09EDFE 0%, #9540FB 100%)"
-					p={2}
-					rounded="xl"
-					minW="7rem"
-					justify="center"
-				>
-					<Text fontSize="xl" color="#37003C">
+				<Flex p={2} rounded="xl" minW="7rem" justify="center" bgColor="#E9237A">
+					<Text fontSize="xl" color="white">
 						Profile
 					</Text>
 				</Flex>
