@@ -2,6 +2,7 @@ import * as PushAPI from '@pushprotocol/restapi';
 import { useAccount, useSigner, useBalance } from 'wagmi';
 import { Flex, Text, Button } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
+import { Navbar } from '@/components';
 
 export default function Profile() {
 	const { address } = useAccount();
@@ -107,7 +108,8 @@ export default function Profile() {
 
 	return (
 		<>
-			<Flex flexDir="column">
+			<Flex minH={'100vh'} flexDir="column" align="center">
+				<Navbar />
 				{isSubscribed ? (
 					<Button
 						onClick={() => {

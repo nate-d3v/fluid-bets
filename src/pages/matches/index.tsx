@@ -1,5 +1,6 @@
+import Head from 'next/head';
 import { Flex } from '@chakra-ui/react';
-import MatchList from '../../components/MatchList';
+import { MatchList, Navbar } from '../../components';
 
 const apiKeyFootball = process.env.NEXT_PUBLIC_FOOTBALL_DATA_API_KEY;
 
@@ -33,7 +34,13 @@ export async function getServerSideProps() {
 export default function Matches({ data }: any) {
 	return (
 		<>
-			<Flex flexDir="column">
+			<Head>
+				<title>Fluid Bets</title>
+				<meta name="viewport" content="width=device-width, initial-scale=1" />
+				<link rel="icon" href="/favicon.ico" />
+			</Head>
+			<Flex minH={'100vh'} flexDir="column" align="center">
+				<Navbar />
 				<MatchList data={data} />
 			</Flex>
 		</>

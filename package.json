@@ -13,6 +13,8 @@
     "@chakra-ui/react": "^2.4.9",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
+    "@fontsource/poppins": "^4.5.10",
+    "@fontsource/raleway": "^4.5.12",
     "@next/font": "13.1.5",
     "@prisma/client": "^4.9.0",
     "@pushprotocol/restapi": "^0.3.0",

@@ -1496,6 +1496,16 @@
     "@ethersproject/properties" "^5.7.0"
     "@ethersproject/strings" "^5.7.0"
 
+"@fontsource/poppins@^4.5.10":
+  version "4.5.10"
+  resolved "https://registry.yarnpkg.com/@fontsource/poppins/-/poppins-4.5.10.tgz#44dbfeacb5d89efca5ad7ad6cc941b2ac1ee424b"
+  integrity sha512-oYZVHsnlwV3VWM1SE/m6SUxVh0QLk5+2wB+lBiXcI7N/0KVQWmV9YykaPqfJHBLvmdya+MAOnv+BQHeLU1vOOw==
+
+"@fontsource/raleway@^4.5.12":
+  version "4.5.12"
+  resolved "https://registry.yarnpkg.com/@fontsource/raleway/-/raleway-4.5.12.tgz#25a7bc448a8440a46205e7259e1f8cb03fa59e18"
+  integrity sha512-uKs13d6NFWU4vf5LSDHK/cbaAw+UXkzz03fKjyvkKq8Nop+CeB6o8STEDkZD9/uOo3v3sgm59Wyw8uGWvxoCiA==
+
 "@jridgewell/resolve-uri@^3.0.3":
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/@jridgewell/resolve-uri/-/resolve-uri-3.1.0.tgz#2203b118c157721addfe69d47b70465463066d78"

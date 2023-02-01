@@ -9,11 +9,14 @@ import {
 	RadioGroup,
 	Radio,
 	HStack,
+	Flex,
 } from '@chakra-ui/react';
 import { PrismaClient, Prisma } from '@prisma/client';
 import { useProvider, useSigner, useAccount } from 'wagmi';
 import { useEffect, useState } from 'react';
 import { Framework } from '@superfluid-finance/sdk-core';
+import { Navbar } from '@/components';
+import Head from 'next/head';
 
 const prisma = new PrismaClient();
 const apiKeyFootball = process.env.NEXT_PUBLIC_FOOTBALL_DATA_API_KEY;
@@ -86,7 +89,7 @@ export default function Match({ apiData, dbData }: any) {
 	const [poolCreated, setPoolCreated] = useState(false);
 	const [matchStatus, setMatchStatus] = useState<
 		'TIMED' | 'FINISHED' | 'OTHER'
-	>('FINISHED');
+	>('TIMED');
 	const [userHasDeposited, setUserHasDeposited] = useState(false);
 
 	useEffect(() => {
@@ -97,7 +100,7 @@ export default function Match({ apiData, dbData }: any) {
 		}
 	}, [address]);
 
-	//comment this useEffect block to simulate match ending without db query
+	//comment out this useEffect to simulate match ending without a db query
 	/* useEffect(() => {
 		if (apiData.status === 'TIMED') {
 			setMatchStatus('TIMED');
@@ -155,7 +158,7 @@ export default function Match({ apiData, dbData }: any) {
 
 	const buildDistributionArray = () => {
 		let arr: any[] = [];
-		//change manually to simulate match ending and create winners array
+		//change manually to simulate match ending and create the winners array
 		arr = dbData.homeTeam as Prisma.JsonArray;
 		if (apiData.score === 'HOME_TEAM') {
 		} else if (apiData.score === 'AWAY_TEAM') {
@@ -192,121 +195,131 @@ export default function Match({ apiData, dbData }: any) {
 
 	return (
 		<>
-			<Button
-				onClick={async () => {
-					const resSF = await superfluidRequest('createIndex');
-					const resDB = await dbRequest(
-						{ matchId: apiData.id, indexId: resSF.index },
-						'POST'
-					);
-					sendNotification('broadcast', {
-						data: {
-							title: `${apiData.homeTeam.tla} - ${apiData.awayTeam.tla}`,
-							body: 'A new betting pool was created',
-						},
-					});
-					if (resDB) {
-						setPoolCreated(true);
-					}
-				}}
-				isDisabled={poolCreated || matchStatus !== 'TIMED'}
-			>
-				Create pool
-			</Button>
-			<FormControl isInvalid={isError}>
-				<FormLabel>Amount</FormLabel>
-				<NumberInput
-					defaultValue={10}
-					max={100}
-					min={10}
-					clampValueOnBlur={false}
-				>
-					<NumberInputField
-						value={amount}
-						onChange={e => setAmount(e.target.value)}
-					/>
-				</NumberInput>
-				<FormErrorMessage>Min: 10 DAIx & Max: 100 DAIx</FormErrorMessage>
+			<Head>
+				<title>Fluid Bets</title>
+				<meta name="viewport" content="width=device-width, initial-scale=1" />
+				<link rel="icon" href="/favicon.ico" />
+			</Head>
+			<Flex minH={'100vh'} flexDir="column" align="center">
+				<Navbar />
 				<Button
 					onClick={async () => {
-						const tx = await sendTokens();
-						if (tx?.confirmations === 1) {
-							dbRequest(
-								{
-									data: {
-										id: dbData.id,
-										userAmount: Number(amount),
-										userAddress: profileAddress,
-										team: selectedTeam,
-									},
-								},
-								'PUT'
-							);
-							setUserHasDeposited(true);
-							sendNotification('broadcast', {
-								data: {
-									title: `${apiData.homeTeam.tla} - ${apiData.awayTeam.tla}`,
-									body: `A new participant has bet ${amount} DAIx on ${
-										selectedTeam === 'homeTeam'
-											? apiData.homeTeam.shortName
-											: apiData.awayTeam.shortName
-									}`,
-								},
-							});
+						const resSF = await superfluidRequest('createIndex');
+						const resDB = await dbRequest(
+							{ matchId: apiData.id, indexId: resSF.index },
+							'POST'
+						);
+						sendNotification('broadcast', {
+							data: {
+								title: `${apiData.homeTeam.tla} - ${apiData.awayTeam.tla}`,
+								body: 'A new betting pool was created',
+							},
+						});
+						if (resDB) {
+							setPoolCreated(true);
 						}
 					}}
-					isDisabled={
-						!poolCreated || matchStatus !== 'TIMED' || userHasDeposited
-					}
+					isDisabled={poolCreated || matchStatus !== 'TIMED'}
 				>
-					Deposit
+					Create pool
 				</Button>
-				{userHasDeposited && (
-					<Text>You already deposited funds in this pool</Text>
-				)}
-			</FormControl>
-			<RadioGroup onChange={setSelectedTeam} value={selectedTeam}>
-				<HStack>
-					<Radio value="homeTeam">{apiData.homeTeam.shortName}</Radio>
-					<Radio value="awayTeam">{apiData.awayTeam.shortName}</Radio>
-				</HStack>
-			</RadioGroup>
-			<Button
-				onClick={async () => {
-					const arr = buildDistributionArray();
-					let modArr = arr.map((item: any) => `eip155:5:${item[0]}`);
-					console.log(arr);
-					/* const subscriptions = await superfluidRequest('updateSubscription', {
-						data: {
-							indexId: dbData.indexId,
-							array: arr,
-						},
-					}); */
-					/* const distribution = await superfluidRequest('distributeFunds', {
-						data: {
-							indexId: dbData.indexId,
-							totalAmount: dbData.totalAmount * 1e18,
-						},
-					}); */
-					/* sendNotification('subset', {
-						data: {
-							title: `${apiData.homeTeam.tla} - ${apiData.awayTeam.tla}`,
-							body: 'The match has ended and funds have been sent to your address',
-							array: modArr,
-						},
-					}); */
-				}}
-				isDisabled={!poolCreated || matchStatus !== 'FINISHED'}
-			>
-				Request Distribution
-			</Button>
-			<Button
-				onClick={() => {
-					claimFunds();
-				}}
-			>
-				Claim Funds
-			</Button>
+				<FormControl isInvalid={isError}>
+					<FormLabel>Amount</FormLabel>
+					<NumberInput
+						defaultValue={10}
+						max={100}
+						min={10}
+						clampValueOnBlur={false}
+					>
+						<NumberInputField
+							value={amount}
+							onChange={e => setAmount(e.target.value)}
+						/>
+					</NumberInput>
+					<FormErrorMessage>Min: 10 DAIx & Max: 100 DAIx</FormErrorMessage>
+					<Button
+						onClick={async () => {
+							const tx = await sendTokens();
+							if (tx?.confirmations === 1) {
+								dbRequest(
+									{
+										data: {
+											id: dbData.id,
+											userAmount: Number(amount),
+											userAddress: profileAddress,
+											team: selectedTeam,
+										},
+									},
+									'PUT'
+								);
+								setUserHasDeposited(true);
+								sendNotification('broadcast', {
+									data: {
+										title: `${apiData.homeTeam.tla} - ${apiData.awayTeam.tla}`,
+										body: `A new participant has bet ${amount} DAIx on ${
+											selectedTeam === 'homeTeam'
+												? apiData.homeTeam.shortName
+												: apiData.awayTeam.shortName
+										}`,
+									},
+								});
+							}
+						}}
+						isDisabled={
+							!poolCreated || matchStatus !== 'TIMED' || userHasDeposited
+						}
+					>
+						Deposit
+					</Button>
+					{userHasDeposited && (
+						<Text>You already deposited funds in this pool</Text>
+					)}
+				</FormControl>
+				<RadioGroup onChange={setSelectedTeam} value={selectedTeam}>
+					<HStack>
+						<Radio value="homeTeam">{apiData.homeTeam.shortName}</Radio>
+						<Radio value="awayTeam">{apiData.awayTeam.shortName}</Radio>
+					</HStack>
+				</RadioGroup>
+				<Button
+					onClick={async () => {
+						const arr = buildDistributionArray();
+						//let modArr = arr.map((item: any) => `eip155:5:${item[0]}`);
+						const subscriptions = await superfluidRequest(
+							'updateSubscription',
+							{
+								data: {
+									indexId: dbData.indexId,
+									array: arr,
+								},
+							}
+						);
+						const distribution = await superfluidRequest('distributeFunds', {
+							data: {
+								indexId: dbData.indexId,
+								totalAmount: dbData.totalAmount * 1e18,
+							},
+						});
+						sendNotification('broadcast', {
+							data: {
+								title: `${apiData.homeTeam.tla} - ${apiData.awayTeam.tla}`,
+								body: 'The match has ended and funds have been distributed',
+							},
+						});
+					}}
+					isDisabled={!poolCreated || matchStatus !== 'FINISHED'}
+				>
+					Request Distribution
+				</Button>
+				<Button
+					onClick={() => {
+						claimFunds();
+					}}
+					isDisabled={!poolCreated || matchStatus !== 'FINISHED'}
+				>
+					Claim Funds
+				</Button>
+			</Flex>
 		</>
 	);
 }
