@@ -3,6 +3,7 @@ import { useAccount, useSigner, useBalance } from 'wagmi';
 import { Flex, Text, Button, VStack, Image, Box } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { Navbar } from '@/components';
+import Head from 'next/head';
 
 export default function Profile() {
 	const { address } = useAccount();
@@ -108,6 +109,11 @@ export default function Profile() {
 
 	return (
 		<>
+			<Head>
+				<title>Fluid Bets</title>
+				<meta name="viewport" content="width=device-width, initial-scale=1" />
+				<link rel="icon" href="/favicon.ico" />
+			</Head>
 			<Flex minH={'100vh'} flexDir="column" align="center" bgImg="url(/bg.jpg)">
 				<Navbar />
 				<Flex
