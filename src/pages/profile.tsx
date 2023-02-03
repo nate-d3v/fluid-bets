@@ -66,7 +66,9 @@ export default function Profile() {
 			});
 
 			if (notifications) {
-				let arr = notifications.filter((obj: any) => obj.app === 'Fluid Bets');
+				let arr = notifications
+					.filter((obj: any) => obj.app === 'Fluid Bets')
+					.slice(0, 10);
 
 				if (arr.length !== notificationsArray.length) {
 					setNotificationsArray(arr);
