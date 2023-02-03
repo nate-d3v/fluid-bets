@@ -102,7 +102,7 @@ export default function Match({ apiData, dbData }: any) {
 	}, [address]);
 
 	//comment out this useEffect to simulate match ending without a db query
-	/* useEffect(() => {
+	useEffect(() => {
 		if (apiData.status === 'TIMED') {
 			setMatchStatus('TIMED');
 		} else if (apiData.status === 'FINISHED') {
@@ -110,7 +110,7 @@ export default function Match({ apiData, dbData }: any) {
 		} else {
 			setMatchStatus('OTHER');
 		}
-	}, [matchStatus]); */
+	}, [matchStatus]);
 
 	useEffect(() => {
 		if (dbData) {
@@ -160,8 +160,8 @@ export default function Match({ apiData, dbData }: any) {
 	const buildDistributionArray = () => {
 		let arr: any[] = [];
 		//change manually to simulate match ending and create the winners array
-		arr = dbData.homeTeam as Prisma.JsonArray;
 		if (apiData.score === 'HOME_TEAM') {
+			arr = dbData.homeTeam as Prisma.JsonArray;
 		} else if (apiData.score === 'AWAY_TEAM') {
 			arr = dbData.awayTeam as Prisma.JsonArray;
 		} else if (apiData.score === 'DRAW') {
