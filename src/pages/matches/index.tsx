@@ -4,9 +4,11 @@ import { MatchList, Navbar } from '../../components';
 
 const apiKeyFootball = process.env.NEXT_PUBLIC_FOOTBALL_DATA_API_KEY;
 
-const fromDate = new Date().toISOString();
+const fromDate = new Date(
+	new Date().setDate(new Date().getDate() - 3)
+).toISOString();
 const toDate = new Date(
-	new Date().setDate(new Date().getDate() + 10)
+	new Date().setDate(new Date().getDate() + 7)
 ).toISOString();
 
 export async function getServerSideProps() {
