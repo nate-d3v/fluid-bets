@@ -5,7 +5,7 @@ import { CalendarIcon, CheckIcon, TimeIcon } from '@chakra-ui/icons';
 export default function MatchList({ data }: any) {
 	return (
 		<>
-			{data.matches.slice(0, 9).map((match: any) => (
+			{data.matches.map((match: any) => (
 				<Link
 					key={match.id}
 					as={NextLink}
